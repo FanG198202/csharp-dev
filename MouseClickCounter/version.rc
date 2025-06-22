@@ -1,0 +1,32 @@
+#include <winver.h>
+
+IDI_APP_ICON ICON "MouseClickCounter.ico"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0,13,0,0
+ PRODUCTVERSION 0,13,0,0
+ FILEFLAGSMASK 0x3fL
+ FILEFLAGS 0x0L
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName",      "fan198202@gmail.com\0"
+            VALUE "FileDescription",  "滑鼠左鍵點擊次數記錄器\0"
+            VALUE "FileVersion",      "0.13.0.0\0"
+            VALUE "InternalName",     "MouseClickCounter_v0.13.exe\0"
+            VALUE "OriginalFilename", "MouseClickCounter_v0.13.exe\0"
+            VALUE "ProductName",      "MouseClickCounter\0"
+            VALUE "ProductVersion",   "0.13.0.0\0"
+            VALUE "LegalCopyright",   "Copyright c 2025\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1200
+    END
+END
