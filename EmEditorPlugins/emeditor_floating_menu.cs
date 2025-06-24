@@ -370,6 +370,8 @@ namespace EmEditorFloatingMenu
     // 程式進入點
     public class Program
     {
+        Console.InputEncoding = System.Text.Encoding.UTF8;
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
         [STAThread]
         static void Main()
         {
