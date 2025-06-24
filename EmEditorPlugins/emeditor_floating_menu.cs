@@ -10,6 +10,8 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Net;
 using System.Web;
+using System.IO;
+using Ude; // 新增: 用於偵測編碼
 
 namespace EmEditorFloatingMenu
 {
@@ -53,7 +55,7 @@ namespace EmEditorFloatingMenu
             InitializeTrayIcon();
             InitializeFloatingMenu();
             InitializeTimer();
-            
+
             // 隱藏主視窗
             this.WindowState = FormWindowState.Minimized;
             this.ShowInTaskbar = false;
@@ -63,7 +65,7 @@ namespace EmEditorFloatingMenu
         private void InitializeComponent()
         {
             this.SuspendLayout();
-            
+
             // 
             // FloatingMenuPlugin
             // 
@@ -74,7 +76,7 @@ namespace EmEditorFloatingMenu
             this.Text = "EmEditor 浮動功能表";
             this.Load += new System.EventHandler(this.FloatingMenuPlugin_Load);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FloatingMenuPlugin_FormClosing);
-            
+
             this.ResumeLayout(false);
         }
 
@@ -88,13 +90,13 @@ namespace EmEditorFloatingMenu
 
             // 建立右鍵選單
             trayMenu = new ContextMenuStrip();
-            
+
             ToolStripMenuItem showItem = new ToolStripMenuItem("顯示");
             showItem.Click += ShowItem_Click;
             trayMenu.Items.Add(showItem);
-            
+
             trayMenu.Items.Add(new ToolStripSeparator());
-            
+
             ToolStripMenuItem exitItem = new ToolStripMenuItem("結束程式");
             exitItem.Click += ExitItem_Click;
             trayMenu.Items.Add(exitItem);
@@ -222,10 +224,10 @@ namespace EmEditorFloatingMenu
                 floatingPanel.Location = new Point(x, y);
                 floatingPanel.Visible = true;
                 floatingPanel.BringToFront();
-                
+
                 // 設置為最上層
                 SetWindowPos(this.Handle, HWND_TOPMOST, x, y, 0, 0, SWP_NOSIZE | SWP_SHOWWINDOW);
-                
+
                 isFloatingVisible = true;
             }
             catch (Exception ex)
@@ -365,16 +367,75 @@ namespace EmEditorFloatingMenu
             }
             base.Dispose(disposing);
         }
+
+        // ▼▼▼ Ude自動偵測編碼及I/O包裝 ▼▼▼
+
+        /// <summary>
+        /// 自動偵測檔案編碼
+        /// </summary>
+        public static Encoding DetectEncoding(string filePath)
+        {
+            using (FileStream fs = File.OpenRead(filePath))
+            {
+                CharsetDetector detector = new CharsetDetector();
+                detector.Feed(fs);
+                detector.DataEnd();
+                if (detector.Charset != null)
+                {
+                    try
+                    {
+                        return Encoding.GetEncoding(detector.Charset);
+                    }
+                    catch
+                    {
+                        return Encoding.UTF8; // 若無法解析則用UTF8
+                    }
+                }
+                else
+                {
+                    return Encoding.Default; // 偵測失敗則用系統預設
+                }
+            }
+        }
+
+        /// <summary>
+        /// 自動偵測編碼讀取檔案
+        /// </summary>
+        public static string ReadFileAutoEncoding(string filePath)
+        {
+            Encoding encoding = DetectEncoding(filePath);
+            return File.ReadAllText(filePath, encoding);
+        }
+
+        /// <summary>
+        /// 以指定編碼寫入檔案
+        /// </summary>
+        public static void WriteFileAutoEncoding(string filePath, string content, Encoding encoding)
+        {
+            File.WriteAllText(filePath, content, encoding);
+        }
+
+        // ▲▲▲ Ude自動偵測編碼及I/O包裝 ▲▲▲
     }
 
     // 程式進入點
     public class Program
     {
-        Console.InputEncoding = System.Text.Encoding.UTF8;
-        Console.OutputEncoding = System.Text.Encoding.UTF8;
         [STAThread]
         static void Main()
         {
+            // 讓 Console I/O 預設為UTF-8（如需依來源偵測可在此加判斷）
+            Console.InputEncoding = Encoding.UTF8;
+            Console.OutputEncoding = Encoding.UTF8;
+
+            // ★範例：自動偵測讀取檔案
+            /*
+            string filePath = "input.txt";
+            string content = FloatingMenuPlugin.ReadFileAutoEncoding(filePath);
+            Console.WriteLine("偵測自動編碼後讀取內容：");
+            Console.WriteLine(content);
+            */
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new FloatingMenuPlugin());
